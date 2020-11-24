@@ -1,6 +1,7 @@
 #libraries 
 library(rvest)
 library(stringr)
+library(tidyverse)
 
 #onion main URL
 url <-("https://www.theonion.com/latest")
@@ -56,6 +57,17 @@ pg6 <- ("https://www.theonion.com/latest?startTime=1605204000944")
 
 #max number of pages
 max <- 6
+#iterating the link function
+base_url<-"https://www.theonion.com/tag/archive?startIndex="
+iterate_onion_url<-function(max,base_url){
+  link_list<-list()
+  for(i in 0:max){
+    pagenum<-20*i
+    temp<-paste0(base_url,as.character(pagenum))
+    link_list<-c(link_list,temp)
+  }
+  return(link_list)
+}
 
 #function
 
