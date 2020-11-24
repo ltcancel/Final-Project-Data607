@@ -1,5 +1,6 @@
 #libraries 
 library(rvest)
+library(stringr)
 
 #onion main URL
 url <-("https://www.theonion.com/latest")
@@ -24,10 +25,10 @@ onion %>%
 #article 1
 url1 <- ("https://www.theonion.com/cdc-shuts-down-thanksgiving-travel-by-carrying-out-simu-1845719500")
 
-pg1 <- read_html(url1)
+pg1 <- read_html(url)
 
 #article title
-pg1 %>%
+url %>%
   html_nodes(".bBLibw") %>%
   html_text()
 
@@ -44,8 +45,31 @@ pg1 %>%
   
 
 #other pages
-https://www.theonion.com/latest?startTime=1606136700715
-https://www.theonion.com/latest?startTime=1605816000526
-https://www.theonion.com/latest?startTime=1605705780724
-https://www.theonion.com/latest?startTime=1605539700275
-https://www.theonion.com/latest?startTime=1605204000944
+str1 <- "pg"
+pg1 <- ("https://www.theonion.com/latest")
+pg2 <- ("?startTime=1606136700715")
+pg3 <- ("https://www.theonion.com/latest?startTime=1605816000526")
+pg4 <- ("https://www.theonion.com/latest?startTime=1605705780724")
+pg5 <- ("https://www.theonion.com/latest?startTime=1605539700275")
+pg6 <- ("https://www.theonion.com/latest?startTime=1605204000944")
+
+
+#max number of pages
+max <- 6
+
+#function
+
+for (i in 1:max){
+  url <- str_c(str1,i)
+  onion <- read_html(url)
+  
+  links <- onion %>%
+    html_nodes(".aoiLP") %>%
+    html_nodes(".js_link") %>%
+    html_attr("href") %>%
+    as.character()
+  
+  list_of_links <- rbind(list_of_links,links)
+}
+
+
