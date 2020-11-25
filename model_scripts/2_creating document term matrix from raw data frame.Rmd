@@ -1,0 +1,107 @@
+---
+title: "creating document term matrix from hamspam Data frame"
+author: "Jack Wright"
+date: "11/13/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+This expects you have created the object "full_df" from the script
+"pulling file data with sapply()"
+
+## libraries
+```{r}
+library(tm)
+library(tidyverse)
+
+#here helps us deal with paths in markdowns.
+library(here)
+```
+
+#data frame to corpus
+
+The tm package expects certain column names in order to turn a df into a corpus
+
+```{r}
+true_df <-read.csv(here('data','csv','True.csv'), encoding="ascii")
+fake_df <- read.csv(here('data','csv', 'Fake.csv'), encoding="ascii")
+
+true_df <- true_df %>% 
+  mutate(type="True")
+
+fake_df <- fake_df %>% 
+  mutate(type="Fake")
+
+full_df <- rbind(true_df, fake_df)
+
+full_df <- full_df %>% 
+  mutate( doc_id=row_number()) %>%
+  select(doc_id, text, type )
+```
+
+
+The full data is too big to be processed, so we sample the df to get a mix of ham and spam
+
+```{r}
+sample_df<-as.data.frame(slice_sample(full_df,n=500))
+Encoding(sample_df$text) <- "latin1"
+sample_df$text<-iconv(sample_df$text, "latin1", "ASCII", sub="")
+```
+
+
+we can add filters here to remove punctuation and stuff (in data mining notes in resources folder)
+```{r}
+spamham_corpus<-Corpus(DataframeSource(sample_df))
+#add filtering here to get rid of whitespace, stopwords etc..
+
+#POTENTIAL FILTERS (maybe we dont want them?)
+#remove stopwords
+spamham_corpus<-tm_map(spamham_corpus, removeWords, stopwords("english"))
+#strip white space
+spamham_corpus<-tm_map(spamham_corpus, stripWhitespace)
+#convert to lower
+spamham_corpus<-tm_map(spamham_corpus, content_transformer(tolower))
+#url remover
+#urlRemover <- function(x) gsub("http:[[:alnum:]]*","", x)
+#spamham_corpus<-tm_map(spamham_corpus,content_transformer(urlRemover))
+#email remover
+#emailRemover<-function(x) str_replace(x,"(?<=\\s)[[:alnum:]._-]+@[[:alnum:],.-]{2,}","")
+#spamham_corpus<-tm_map(spamham_corpus,content_transformer(emailRemover))
+
+#remove numbers
+spamham_corpus<-tm_map(spamham_corpus, removeNumbers)
+#punctuation remover
+spamham_corpus<-tm_map(spamham_corpus, removePunctuation)
+
+#stemming (simplest word form)
+spamham_corpus<-tm_map(spamham_corpus, stemDocument)
+
+```
+
+
+## create document term matrix from corpus and recombine
+```{r}
+#create document term matrix
+dtm<-DocumentTermMatrix(spamham_corpus)
+
+#removing sparse variables
+dtm <- removeSparseTerms(dtm, 0.96)
+
+#turn into data frame
+dataset <- as.data.frame(as.matrix(dtm))
+
+# note that the "doc_id" column and the rownumber match, so the correct tags have been re added
+
+#join the doc_id and type columns to the main dataset
+nrow(dataset)
+output_df<-cbind("docId"=sample_df$doc_id,dataset,"DocType"=sample_df$type)
+
+view(output_df)
+
+con<-file(here('data','csv','output_df.csv'),encoding="UTF-8")
+write.csv(output_df,file=con , row.names = FALSE, )
+
+```
