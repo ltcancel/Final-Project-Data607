@@ -56,11 +56,11 @@ pg6 <- ("https://www.theonion.com/latest?startTime=1605204000944")
 
 
 #max number of pages
-max = 6
+max <- 6
 
 #iterating the link function
 base_url<-"https://www.theonion.com/tag/archive?startIndex="
-iterate_onion_url<-function(max,base_url){
+iterate_onion_url<-function(base_url, max){
   link_list<-list()
   for(i in 0:max){
     pagenum<-20*i
@@ -70,23 +70,18 @@ iterate_onion_url<-function(max,base_url){
   return(link_list)
 }
 
-
-
-
-
 #pull all onion articles from a single page
 onion_links<-function(onion_links_list){
   onion_links_list<-onion_links_list
   onionURL<-list()
   for (i in 1:length(onion_links_list)){
-    html<-read_html(onion_links_list[i])
+    html<-read_html(unlist(onion_links_list[i]))
     temp_urls<-html %>%
       html_nodes(".aoiLP") %>%
       html_nodes(".js_link") %>%
       html_attr("href") %>%
       as.character()
     onionURL<-append(onionURL,temp_urls)
-    
   }
   return(onionURL)
 }
@@ -101,9 +96,7 @@ all_links<-function(base_url,max){
   for (i in 1:length(link_list)){
     temp_list<-onion_links(link_list[i])
     
-    onioin_link_list<-append(onion_link_list,temp_list)
-    
-    
+    onion_link_list<-append(onion_link_list,temp_list)
   }
   onion_link_list<-onion_link_list%>%
     unlist()
@@ -158,15 +151,14 @@ all_onion_scrape<-function(onion_link_list){
 }
 
 #final function
-onion_scrape<-function(base_url,max){
+final_onion_scrape<-function(base_url,max){
   base_url<-base_url
   max<-max
-  job_link_list<-all_links(base_url=base_url,max=max)
-  final_output_df<-all_jobs_scrape(job_link_list)
+  onion_link_list<-all_links(base_url=base_url,max=max)
+  final_output_df<-all_onion_scrape(onion_link_list)
   return(final_output_df)
-  
-  
 }
 
 #test scrape
-all_onion_scrape(base_url)
+data <- final_onion_scrape(base_url = base_url, max=6)
+
