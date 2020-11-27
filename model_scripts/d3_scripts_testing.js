@@ -1,4 +1,4 @@
-// !preview r2d3 data=c(0.3, 0.6, 0.8, 0.95, 0.40, 0.20), d3_version = "3"
+// !preview r2d3 data=readr::read_tsv("model_scripts/data.tsv"), d3_version = "3", container = "div"
 //
 // r2d3: https://rstudio.github.io/r2d3
 //
@@ -22,7 +22,7 @@ d3.tip = function() {
   function tip(vis) {
     svg = getSVGNode(vis)
     point = svg.createSVGPoint()
-    document.body.appendChild(node)
+    div.node().appendChild(node)
   }
 
   // Public - show the tooltip on the screen
@@ -312,7 +312,7 @@ var tip = d3.tip()
     return "<strong>Frequency:</strong> <span style='color:red'>" + d.frequency + "</span>";
   })
 
-var svg = svg.append("svg")
+var svg = div.append("svg")
     .attr("width", width + margin.left + margin.right)
     .attr("height", height + margin.top + margin.bottom)
   .append("g")
@@ -320,7 +320,7 @@ var svg = svg.append("svg")
 
 svg.call(tip);
 
-d3.tsv("data.tsv", type, function(error, data) {
+r2d3.onRender(function(data, s, w, h, options) {
   x.domain(data.map(function(d) { return d.letter; }));
   y.domain([0, d3.max(data, function(d) { return d.frequency; })]);
 
