@@ -284,11 +284,11 @@ d3.tip = function() {
 };
 
 
-var margin = {top: 40, right: 20, bottom: 30, left: 40},
+var margin = {top: 40, right: 20, bottom: 70, left: 70},
     width = width - margin.left - margin.right,
     height = height - margin.top - margin.bottom;
 
-var formatPercent = d3.format(".0%");
+var formatPercent = d3.format(",.2r");
 
 var x = d3.scale.ordinal()
     .rangeRoundBands([0, width], .1);
@@ -324,11 +324,16 @@ r2d3.onRender(function(data, s, w, h, options) {
   x.domain(data.map(function(d) { return d.word; }));
   y.domain([0, d3.max(data, function(d) { return d.n; })]);
 
+  //x-axis
   svg.append("g")
       .attr("class", "x axis")
       .attr("transform", "translate(0," + height + ")")
-      .call(xAxis);
+      .call(xAxis)
+    .selectAll("text")
+      .style("text-anchor","end")
+      .attr("transform","rotate(-45)");
 
+  //y-axis
   svg.append("g")
       .attr("class", "y axis")
       .call(yAxis)
@@ -337,7 +342,7 @@ r2d3.onRender(function(data, s, w, h, options) {
       .attr("y", 6)
       .attr("dy", ".71em")
       .style("text-anchor", "end")
-      .text("Frequency");
+      //.text("Frequency");
 
   svg.selectAll(".bar")
       .data(data)
@@ -348,7 +353,16 @@ r2d3.onRender(function(data, s, w, h, options) {
       .attr("y", function(d) { return y(d.n); })
       .attr("height", function(d) { return height - y(d.n); })
       .on('mouseover', tip.show)
-      .on('mouseout', tip.hide)
+      .on('mouseout', tip.hide);
+  
+  //add chart title
+  svg.append("text")
+    .attr("transform","translate(100,0)")
+    .attr("x", 100)
+    .attr("y", 50)
+    .attr("font-size","24px")
+    .attr("font-weight","bold")
+    .text("Top 20 Words - 'Real' News");
 
 });
 
