@@ -56,7 +56,7 @@ caret::confusionMatrix(unlist(pred), unlist(test[,num_cols]))
 
 library(e1071)
 library(kernlab)
-view(train)
+#view(train)
 
 tune =tune(svm,DocType_c~.,data=train,kernel
            ="radial",scale=FALSE,ranges =list(cost=c(0.001,0.01,0.1,1,5,10,100)))
@@ -74,8 +74,8 @@ cm <- table(unlist(test[,num_cols]), unlist(pred))
 caret::confusionMatrix(unlist(pred), unlist(test[,num_cols]))
 
 #scatter plot of the model
-?plot.svm
-?svm
+#?plot.svm
+#?svm
 
 #trying to plot using plot.svm but we need to specify a formula?
 plot(svm_model, data = train, subject_c ~ email_c)

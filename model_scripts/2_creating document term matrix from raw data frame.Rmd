@@ -99,7 +99,7 @@ dataset <- as.data.frame(as.matrix(dtm))
 nrow(dataset)
 output_df<-cbind("docId"=sample_df$doc_id,dataset,"DocType"=sample_df$type)
 
-view(output_df)
+#view(output_df)
 
 con<-file(here('data','csv','output_df.csv'),encoding="UTF-8")
 write.csv(output_df,file=con , row.names = FALSE, )
