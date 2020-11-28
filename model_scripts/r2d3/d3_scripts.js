@@ -1,4 +1,4 @@
-// !preview r2d3 data=readr::read_tsv("model_scripts/data.tsv"), d3_version = "3", container = "div"
+// !preview r2d3 data=readr::read_tsv("model_scripts/r2d3/data.tsv"), d3_version = "3", container = "div"
 //
 // r2d3: https://rstudio.github.io/r2d3
 //

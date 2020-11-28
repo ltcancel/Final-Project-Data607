@@ -1,15 +1,10 @@
-// !preview r2d3 data=data
+// !preview r2d3 data=readr::read_tsv("model_scripts/r2d3/data.tsv"), d3_version = "3", container = "div"
 //
 // r2d3: https://rstudio.github.io/r2d3
 //
 //Test 2 to change between 2 sets of data
 
-<!-- Add 2 buttons -->
-<button onclick="update(data1)">Variable 1</button>
-<button onclick="update(data2)">Variable 2</button>
 
-<!-- Create a div where the graph will take place -->
-<div id="my_dataviz"></div>
 
 // create 2 data_set
 var data1 = [
@@ -42,7 +37,7 @@ var svg = d3.select("#my_dataviz")
 // Initialize the X axis
 var x = d3.scaleBand()
   .range([ 0, width ])
-  .padding(0.2);
+  .paddingInner(0.2);
 var xAxis = svg.append("g")
   .attr("transform", "translate(0," + height + ")")
 
@@ -87,4 +82,4 @@ function update(data) {
 }
 
 // Initialize the plot with the first dataset
-update(data1)
+update(data) //update(data1)
