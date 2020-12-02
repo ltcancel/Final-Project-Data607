@@ -1,10 +1,10 @@
 ---
-title: "Data 607: Project 4"
+title: "True vs Fake News"
 author: 
   - LeTicia Cancel
   - George Cruz
   - Jack Wright
-date: "11/14/2020"
+date: "12/01/2020"
 output: 
   rmdformats::material:
   code_folding: hide
