@@ -10,7 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ## libraries
-```{r}
+```{r message=FALSE,warning=FALSE}
 library(quanteda)
 library(tm)
 library(SnowballC)
@@ -25,7 +25,7 @@ https://www.rdocumentation.org/packages/tm/versions/0.7-8/topics/Corpus
 #fake
 fake_output_df <- output_df %>%
   filter(DocType == "Fake") %>%
-  select(-c(docId,DocType))
+  select(-c(docId,DocType,the))
 
 
 #fake
@@ -37,7 +37,7 @@ wordcloud(d$word, colors=c(3,4),random.color=FALSE,d$freq,min.freq=60)
 #true
 true_output_df <- output_df %>%
   filter(DocType == "True") %>%
-  select(-c(docId,DocType))
+  select(-c(docId,DocType,the))
 
 #true
 v2 = sort(colSums(true_output_df),decreasing = TRUE)
@@ -62,7 +62,7 @@ true_df_words <- true_df %>%
 
 #top 20 true words df
 top_true_df_words <- true_df_words %>%
-  select(-c(type)) %>%
+  #select(-c(type)) %>%
   filter(!word %in% c("s","â")) %>%
   top_n(20, n)
 
@@ -86,7 +86,11 @@ dataset <- readr::read_tsv("r2d3/data.tsv")
 
 - chart title is hard coded
 ```{r}
+# 'True' news words
 r2d3::r2d3(data=top_true_df_words, script = "r2d3/d3_scripts.js", d3_version = "3", container = "div")
+
+# 'Fake' news words
+r2d3::r2d3(data=top_fake_df_words, script = "r2d3/d3_scripts.js", d3_version = "3", container = "div")
 ```
 
 
@@ -142,7 +146,7 @@ top_words_all <- rbind(top_words_all,x)
 
 
 ## shiny app Works!!!!!
-```{r}
+```{r message=FALSE, warning=FALSE}
 library(shiny)
 library(datasets)
 library(tidyr)
@@ -152,8 +156,9 @@ ui <- fluidPage(
   
   sidebarLayout(
     sidebarPanel(
-      selectInput("type", "Type:",
-                  choices = top_words_all$type),
+      selectInput("type", "Type of Article:",
+                  choices = top_words_all$type,
+                  selected = c(top_words_all$type == "Fake")),
       hr(),
       helpText("Select a type from the dropdown to display data")
     ),
@@ -172,7 +177,8 @@ server <- function(input, output){
       filter(type == input$type) %>%
       ggplot(aes(word,n)) +
       geom_col() +
-      coord_flip()
+      ylab("Word Count") +
+      coord_flip() 
 #    barplot(top_words_all[input$n, input$word],
 #            main = input$word,
 #            ylab = "Number of Telephones",
@@ -181,5 +187,84 @@ server <- function(input, output){
 }
 
 shinyApp(ui = ui, server = server)
+```
+
+shiny app and d3 mixed
+```{r}
+library(shiny)
+library(datasets)
+library(tidyr)
+
+ui <- fluidPage(
+  titlePanel("Top 20 Words"),
+  
+  sidebarLayout(
+    sidebarPanel(
+      selectInput("type", "Type of Article:",
+                  choices = top_words_all$type),
+                 # selected = c(top_words_all$type == "Fake")),
+      hr(),
+      helpText("Select a type from the dropdown to display data")
+    ),
+    
+    d3Output("d3")
+  )
+)
+
+server <- function(input, output){
+  output$d3 <- renderD3({
+    #render d3 graph
+    if(input$type == "Fake"){
+      r2d3::r2d3(data=top_fake_df_words, script = "r2d3/d3_scripts.js", d3_version = "3", container = "div")
+    }
+    else{
+      r2d3::r2d3(data=top_true_df_words, script = "r2d3/d3_scripts.js", d3_version = "3", container = "div")
+    }
+  })
+  output$d3.exit().remove()
+
+}
+
+
+shinyApp(ui,server)
+```
+
+shiny test 2
+```{r}
+library(shiny)
+library(datasets)
+library(tidyr)
+
+ui <- fluidPage(
+  titlePanel("Top 20 Words"),
+  
+  sidebarLayout(
+    sidebarPanel(
+      selectInput("type", "Type of Article:",
+                  choices = top_words_all$type),
+                 # selected = c(top_words_all$type == "Fake")),
+      hr(),
+      helpText("Select a type from the dropdown to display data")
+    ),
+    
+    d3Output("d3")
+  )
+)
+
+server <- function(input, output){
+  output$d3 <- renderD3({
+    #render d3 graph
+    if(input$type == "Fake"){
+      r2d3::r2d3(data=top_fake_df_words, script = "r2d3/d3_scripts_multi_test.js", d3_version = "3", container = "div")
+    }
+    else{
+      r2d3::r2d3(data=top_true_df_words, script = "r2d3/d3_scripts_multi_test.js", d3_version = "3", container = "div")
+    }
+  })
+
+}
+
+
+shinyApp(ui,server)
 ```
 
