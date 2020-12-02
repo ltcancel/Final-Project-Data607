@@ -7,6 +7,7 @@ library(tidyverse)
 #here helps us deal with paths in markdowns.
 library(here)
 
+source(here("functions","format_dtm", "format_dtm.R"))
 
 #data frame to corpus
 

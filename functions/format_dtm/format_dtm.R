@@ -10,9 +10,6 @@ format_dtm<-function(input_df,reference_df){
       select(-DocType)
   }
   
-  
-  
-  
   #remove unwanted columns
   i=1
   cols_removed<-0
@@ -24,8 +21,6 @@ format_dtm<-function(input_df,reference_df){
       cols_removed<-cols_removed+1
     }
     i=i+1
-    
-    
   }
   
   input_df<-input_df%>%

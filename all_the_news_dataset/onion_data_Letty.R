@@ -2,7 +2,9 @@
 library(rvest)
 library(stringr)
 library(tidyverse)
+library(here)
 
+testing <- function() { 
 #onion main URL
 url <-("https://www.theonion.com/latest")
 
@@ -53,7 +55,7 @@ pg3 <- ("https://www.theonion.com/latest?startTime=1605816000526")
 pg4 <- ("https://www.theonion.com/latest?startTime=1605705780724")
 pg5 <- ("https://www.theonion.com/latest?startTime=1605539700275")
 pg6 <- ("https://www.theonion.com/latest?startTime=1605204000944")
-
+}
 
 #max number of pages
 max <- 6
@@ -160,5 +162,9 @@ final_onion_scrape<-function(base_url,max){
 }
 
 #test scrape
-data <- final_onion_scrape(base_url = base_url, max=6)
+data <- final_onion_scrape(base_url = base_url, max=12)
+
+#save data 
+con<-file(here('data','csv','onion_df.csv'),encoding="UTF-8")
+write.csv(data,file=con , row.names = FALSE, )
 
