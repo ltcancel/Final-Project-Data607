@@ -37,7 +37,7 @@ perform_random_forest <- function( base_dtm,
   #randomForest() function not running. I think it might be something to do with non ASCII
   #characters in the column names??
   
-  model <- randomForest(DocType_c~.,data=train,mtry=2,importance
+  model <- randomForest(DocType_c~.,data=train,importance
                         =TRUE,proximity=TRUE)
   
   #add _c
