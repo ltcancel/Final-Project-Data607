@@ -13,9 +13,9 @@ library(here)
 source(here("functions", "perform_random_forest.R"))
 source(here("functions", "create_dtm_for_model.R"))
 
-create_dtm_for_model(here('data','csv','business_insider.csv'), 
+create_dtm_for_model(here('data','csv','breitbart.csv'), 
                      here('data','csv','output_df.csv'), 
-                     here('data','csv','business_insider_dtm.csv'))
+                     here('data','csv','breitbart_dtm.csv'))
 
 bi_on <- perform_random_forest(here('data','csv','onion_dtm_df.csv'), 
                            here('data', 'csv','business_insider_onion_dtm.csv'))
@@ -56,6 +56,27 @@ cnn <- rbind(cnn_on, cnn_ft)
 
 ggplot(cnn, aes(x=factor(model), fill=factor(pred) )) +
   geom_bar(position="fill" )
+
+
+breitbart_on <- perform_random_forest(here('data','csv','onion_dtm_df.csv'), 
+                                here('data', 'csv','breitbart_onion_dtm.csv'))
+
+breitbart_ft <- perform_random_forest(here('data','csv','output_df.csv'), 
+                                here('data', 'csv','breitbart_dtm.csv'))
+
+breitbart_on <- breitbart_on %>%
+  mutate(model="onion")
+
+breitbart_on <- breitbart_on %>%
+  mutate(pred= ifelse(pred == "Onion", "Fake", "True"))
+
+breitbart_ft <- breitbart_ft %>%
+  mutate(model="fake_true")
+breitbart <- rbind(breitbart_on, breitbart_ft)
+
+ggplot(breitbart, aes(x=factor(model), fill=factor(pred) )) +
+  geom_bar(position="fill" )
+
 
 
 #svm test

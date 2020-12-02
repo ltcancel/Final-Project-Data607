@@ -1,0 +1,239 @@
+---
+title: "Data 607: Project 4"
+author: 
+  - LeTicia Cancel
+  - George Cruz
+  - Jack Wright
+date: "11/14/2020"
+output: 
+  rmdformats::material:
+  code_folding: hide
+  #prettydoc::html_pretty:
+  #  theme: architect
+   # highlight: github
+---
+
+# Document Classification
+
+It can be useful to be able to classify new "test" documents using already classified "training" documents.  A common example is using a corpus of labeled spam and ham (non-spam) e-mails to predict whether or not a new document is spam.  
+
+For this project, we will start with a spam/ham dataset, then predict the class of new documents withheld from the training dataset.  For this, we used the corpus provided here: [Spam Assassin Corpus](https://spamassassin.apache.org/old/publiccorpus)
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tm)
+library(here)
+library(tm)
+library(quanteda)
+library(tidyverse)
+library(e1071)
+library(randomForest)
+library(ggplot2)     # to plot
+library(gridExtra)   # to put more
+library(grid)        # plot together
+source(here("functions","draw_confusion_matrix.R"), local = knitr::knit_global())
+
+```
+
+# Acquiring the Data
+
+We extracted the tar files into our project's data folder, we then read all of the files into two corpora, ensured to properly tag them with the corresponding type and saved the results in the project's data csv folder. 
+
+```{r}
+
+ham_directory<-DirSource(here("data","spamham","easy_ham"))
+spam_directory<-DirSource(here("data","spamham","spam_2"))
+
+ham_corpus<-Corpus(ham_directory, readerControl = list(reader=readPlain))
+spam_corpus<-Corpus(spam_directory,readerControl = list(reader=readPlain))
+
+#combine into one big corpus (now with appropriate tags)
+df1 <- data.frame(text = sapply(ham_corpus, as.character), type="ham", stringsAsFactors = FALSE)
+df2 <- data.frame(text = sapply(spam_corpus, as.character), type="spam", stringsAsFactors = FALSE)
+
+main_df <- rbind(df1, df2)
+main_df<-main_df%>%
+  mutate(id=row_number(),.before=text)
+
+view(head(main_df))
+
+con<-file(here('data','csv','full_df.csv'),encoding="UTF-8")
+write.csv(main_df,file=con , row.names = FALSE, )
+
+```
+
+Saving the files at the end of the different stages allowed for a smooth experimentation without having to re-run the whole project. 
+
+# Creating Document Term Matrix
+
+The tm package expects certain column names in order to turn a df into a corpus
+
+```{r, message=FALSE}
+full_df <-read_csv(here('data','csv','full_df.csv'))
+colnames(full_df)<-c("doc_id","text","type")
+
+```
+
+
+### Sample the Data
+The full data is too big to be processed, so we sample the df to get a mix of ham and spam
+
+```{r}
+sample_df<-as.data.frame(slice_sample(full_df,n=2000))
+```
+
+### Filter Stop Words, punctuation and special characters
+we can add filters here to remove punctuation and stuff (in data mining notes in resources folder)
+```{r}
+spamham_corpus<-Corpus(DataframeSource(sample_df))
+#add filtering here to get rid of whitespace, stopwords etc..
+
+#POTENTIAL FILTERS (maybe we dont want them?)
+#remove stopwords
+spamham_corpus<-tm_map(spamham_corpus, removeWords, stopwords("english"))
+#strip white space
+spamham_corpus<-tm_map(spamham_corpus, stripWhitespace)
+#convert to lower
+spamham_corpus<-tm_map(spamham_corpus, content_transformer(tolower))
+#url remover
+urlRemover <- function(x) gsub("http:[[:alnum:]]*","", x)
+spamham_corpus<-tm_map(spamham_corpus,content_transformer(urlRemover))
+#email remover
+emailRemover<-function(x) str_replace(x,"(?<=\\s)[[:alnum:]._-]+@[[:alnum:],.-]{2,}","")
+spamham_corpus<-tm_map(spamham_corpus,content_transformer(emailRemover))
+
+#remove numbers
+spamham_corpus<-tm_map(spamham_corpus, removeNumbers)
+#punctuation remover
+spamham_corpus<-tm_map(spamham_corpus, removePunctuation)
+
+#stemming (simplest word form)
+spamham_corpus<-tm_map(spamham_corpus, stemDocument)
+
+```
+
+
+### Create Document Term Matrix from corpus and recombine
+```{r}
+#create document term matrix
+dtm<-DocumentTermMatrix(spamham_corpus)
+
+#removing sparse variables
+dtm <- removeSparseTerms(dtm, 0.96)
+
+#turn into data frame
+dataset <- as.data.frame(as.matrix(dtm))
+
+# note that the "doc_id" column and the rownumber match, so the correct tags have been re added
+
+#join the doc_id and type columns to the main dataset
+nrow(dataset)
+output_df<-cbind("docId"=sample_df$doc_id,dataset,"DocType"=sample_df$type)
+
+view(output_df)
+
+con<-file(here('data','csv','output_df.csv'),encoding="UTF-8")
+write.csv(output_df,file=con , row.names = FALSE, )
+
+```
+
+
+# Random Forest Model & Prediction
+
+Once we got a clean `Document Term Matrix`, we can proceed to try to classify the data.  We will use the Random Forest method to train a model and try to predict the category of other emails.
+
+```{r, message=FALSE}
+df <- read_csv(here('data','csv','output_df.csv'))
+
+#rename type column, get rid of doc it
+df<-df%>%
+  select(-docId)
+df$DocType <- as.factor(df$DocType)
+```
+
+For some reason, the Random Forest did not work without us changing the variable name.
+
+```{r}
+colnames(df) <- paste(colnames(df), 'c', sep="_")
+```
+
+### Training the model
+
+We divide the data into two sets: 
+- 70% will serve to **train** the model. 
+- 30% will serve to **test** the model. 
+
+```{r}
+num_rows <- nrow(df)
+first_rows <- round(num_rows*.70)
+next_rows <- first_rows + 1
+
+#70% test
+train<-df[1:first_rows,]
+
+#30% test
+test<-df[next_rows:num_rows,]
+
+num_cols <- ncol(df)
+#initialize randomForest class
+
+model <- randomForest(DocType_c~.,data=train,mtry=2,importance
+                    =TRUE,proximity=TRUE)
+```
+
+### Testing the model
+
+Once trained, let's see how the RandomForest training works on predicting the category. 
+
+```{r}
+pred <- predict(model, newdata=test[-num_cols],type="class")
+
+cm <- table(unlist(test[,num_cols]), unlist(pred))
+
+c_matrix <- caret::confusionMatrix(unlist(pred), unlist(test[,num_cols]))
+
+c_matrix
+
+```
+
+### Conclusions
+
+The Random Forest gives us an accuracy of 98%.  At a 95% Confidence Interval, the accuracy would be between 97 and 99% which is pretty good. 
+
+# Confusion Matrix Random Forest
+
+```{r, echo=FALSE}
+draw_confusion_matrix(c_matrix)
+```
+
+
+# SVM Model and Prediction
+
+```{r}
+#view(train)
+
+tune =tune(svm,DocType_c~.,data=train,kernel
+           ="radial",scale=FALSE,ranges =list(cost=c(0.001,0.01,0.1,1,5,10,100)))
+tune$best.model
+#best model gives us the desired cost value
+summary(tune)
+
+#plug in the cost value obtained from the summary of the tuning
+svm_model =svm(DocType_c~.,data=train,kernel ="radial",cost=10,scale=FALSE)
+svm_pred = predict(svm_model,test)
+
+
+#confusion matrix for SVM model
+cm <- table(unlist(test[,num_cols]), unlist(svm_pred))
+svm_c_matrix <- caret::confusionMatrix(unlist(svm_pred), unlist(test[,num_cols]))
+
+svm_c_matrix
+
+```
+
+
+# SVM Model Confusion Matrix
+
+```{r, echo=FALSE}
+draw_confusion_matrix(svm_c_matrix)
