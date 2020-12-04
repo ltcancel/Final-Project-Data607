@@ -1,0 +1,46 @@
+---
+title: "Final Presentation outline"
+author: "Jack Wright"
+date: "12/4/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Intro
+
+<explain the real/fake news paradox, identify problems with the framing>
+<state our approach>
+
+## Data
+<identify where our data comes from>
+<show a snip of the data>
+
+## Tidying
+<example of how data is turned into a corpus>
+
+<example of how we can reorganize two corpus into same structure for entry into randomForest>
+
+## Training a model
+
+<show example of how we train>
+<example of a confusion matrix>
+
+## Analysis
+
+<identify main tracts of analysis>
+  -fakeReal and onionReal on data excluded from training
+  -models on eachothers data, helps us gauge accuracy on labeled data (maybe find another source of fake/true)
+<analysis of biggest variables in each category, wordcloud?>
+
+## Exploratory usage of our models
+
+<identify how out of line realFake is with our preconceptions>
+<identify how onionReal does on all_the_news>
+<talk about reasons why, overfitting?>
+<rerurn realFake with less variables and check>
+<centerfold highlight mega graph of all_the_news plots in order>
+
+

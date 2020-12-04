@@ -13,13 +13,11 @@ library(here)
 
 
 df <- read_csv(here('data','csv','output_df.csv'))
-nytimes_dtm<-read_csv(here('data','csv','nytimes_dtm.csv'))
+breitbart_dtm<-read_csv(here('data','csv','breitbart_dtm.csv'))
 #rename type column, get rid of doc it
 df<-df%>%
   select(-docId)
 df$DocType <- as.factor(df$DocType)
-nytimes_dtm<-nytimes_dtm%>%
-  select(-docId)
 
 
 colnames(df) <- paste(colnames(df), 'c', sep="_")
@@ -49,22 +47,22 @@ pred <- predict(model, newdata=test[-num_cols],type="class")
 
 
 #add _c
-colnames(nytimes_dtm) <- paste(colnames(nytimes_dtm), 'c', sep="_")
+colnames(breitbart_dtm) <- paste(colnames(breitbart_dtm), 'c', sep="_")
 
-pred_nyt <- predict(model, newdata=nytimes_dtm,type="class")
+pred <- predict(model, newdata=breitbart_dtm,type="class")
 
-x<-as.data.frame(pred_nyt)
+x<-as.data.frame(pred)
 is.factor(x$pred)
 
-ggplot(x, aes(x=as.factor(pred_nyt) )) +
+ggplot(x, aes(x=as.factor(pred) )) +
   geom_bar(color="blue", fill=rgb(0.1,0.4,0.5,0.7) )
 
 
 #svm test
 
-svm_pred = predict(svm_model,nytimes_dtm)
+svm_pred = predict(svm_model,breitbart_dtm)
 
 
 ggplot(x, aes(x=as.factor(svm_pred) )) +
   geom_bar(color="blue", fill=rgb(0.1,0.4,0.5,0.7) )
-
+0

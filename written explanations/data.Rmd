@@ -1,0 +1,23 @@
+---
+title: "Data"
+author: "Jack Wright"
+date: "12/4/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Data
+
+We located a source from INCLUDE_SOURCE where the authors have composed a dataset of news articles that have been identified as misinformation through fact check research, and a set of articles that have been verified as truthful.
+
+The Onion:
+
+We identified the satire website "the Onion" as a good source of misinformation, because it publishes comedy in the form of news satire. 
+
+"all the news" dataset:
+
+We found a dataset on kaggle that has 150,000 news articles from six major online publishers scraped from 2015 to 2017 
+

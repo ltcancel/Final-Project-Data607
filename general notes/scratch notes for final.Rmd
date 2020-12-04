@@ -1,0 +1,15 @@
+---
+title: "notes for presentation"
+author: "Jack Wright"
+date: "11/28/2020"
+output: html_document
+---
+
+maybe flowerly language marks as fake news
+
+
+line from nyt music review marked as fake news
+
+(temp<-dat%>%filter(id==22401))
+
+"And yes, it is a double album, the sort of gesture intended to connote seriousness of artistic and spiritual purpose, as well as suggesting that the font of feelings serving as inspiration is a roaring waterfall that cannot easily be contained."

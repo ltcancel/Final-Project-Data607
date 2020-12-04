@@ -1,0 +1,34 @@
+---
+title: "Introduction"
+author: "Jack Wright"
+date: "12/4/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Real vs Fake News
+
+(a nice tag on this to make it pop out)
+"... “fake news” has become a trope, so widely used and abused that it no longer serves its original function."-Peter Gamlen
+
+Our project started with the seemingly innocuous proposal of creating an algorithm to identify real vs fake news, a classification that has had a lot of cache over the last half decade.
+
+academic definition:
+
+"...“fake news” (are) news stories that are false: the story itself is fabricated, with no verifiable facts, sources or quotes." -University of Michigan Libraries.
+
+cultural definition:
+
+In its current form, it often used to identify political bias of the news source.  This problem is excastribated by news sources either implicitly or explicitly denying any bias, while butting up against the reality that even if what they report objectively happened and is verifiable, what they choose and choose not to report is a form of bias in itself. 
+
+
+in summation:
+
+"Not only do different people have opposing views about the meaning of “fake news”, in practice the term undermines the intellectual values of democracy – and there is a real possibility that it means nothing. We would be better off if we stopped using it."-Chris Ratcliffe
+
+
+In light of this, we have chosen the adacemic approach, and will try to build an algorithm that can identify news with verifiable fact versus misinformation. 
+
