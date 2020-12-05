@@ -15,6 +15,8 @@ library(quanteda)
 library(tm)
 library(SnowballC)
 library(wordcloud)
+library(tidytext)
+library(r2d3)
 ```
 
 ## wordcloud testing
@@ -47,9 +49,9 @@ wordcloud(d2$word, colors=c(3,4),random.color=FALSE,d2$freq,min.freq=60)
 ```
 
 
-create df of true words and export .tsv file to use with r2d3 script
-```{r}
-head(true_df)
+create df of true and fake words and export .tsv file to use with r2d3 script
+```{r warning=FALSE,message=FALSE}
+#head(true_df)
 
 #convert text column from factor to character 
 true_df <- mutate(true_df, text = as.character(true_df$text))
@@ -69,52 +71,8 @@ top_true_df_words <- true_df_words %>%
 #create .tsv file to use in r2d3 testing
 con<-file(here('model_scripts','data.tsv'),encoding="UTF-8")
 write.table(top_true_df_words,file=con , row.names = FALSE, sep = "\t")
-```
 
-## r2d3 testing
-
-Top 20 words from True DF
-```{r}
-
-dataset <- readr::read_tsv("r2d3/data.tsv")
-
-```
-
-- script can be modified or duplicated to display chart for other datasets.
-
-- a .tsv file is not needed. we can just feed it data frames and it will display 
-
-- chart title is hard coded
-```{r}
-# 'True' news words
-r2d3::r2d3(data=top_true_df_words, script = "r2d3/d3_scripts.js", d3_version = "3", container = "div")
-
-# 'Fake' news words
-r2d3::r2d3(data=top_fake_df_words, script = "r2d3/d3_scripts.js", d3_version = "3", container = "div")
-```
-
-
-
-
-
-
-## working r2d3 chart to use as reference only 
-create dataset 
-```{r}
-dataset_test <- readr::read_tsv("r2d3/data_testing.tsv")
-```
-
-```{r}
-r2d3::r2d3(data=dataset_test, script = "r2d3/d3_scripts_copy.js", d3_version = "3", container = "div")
-?r2d3
-```
-
-## shiny app testing
-
-
-## create df to use with shiny app
-```{r}
-head(fake_df)
+#head(fake_df)
 
 #convert text column from factor to character 
 fake_df <- mutate(fake_df, text = as.character(fake_df$text))
@@ -130,7 +88,25 @@ top_fake_df_words <- fake_df_words %>%
   #select(-c(type)) %>%
   filter(!word %in% c("s","â","t")) %>%
   top_n(20, n)
+```
 
+## r2d3 testing
+
+Top 20 words from True DF
+
+- script can be modified or duplicated to display chart for other datasets.
+
+- a .tsv file is not needed. we can just feed it data frames and it will display 
+
+- chart title is hard coded
+
+## working r2d3 chart to use as reference only 
+
+## shiny app testing
+
+
+## create df to use with shiny app
+```{r warning=FALSE,message=FALSE}
 top_words_all <- fake_df_words %>%
   filter(!word %in% c("s","â","t")) %>%
   top_n(20, n)
@@ -146,6 +122,8 @@ top_words_all <- rbind(top_words_all,x)
 
 
 ## shiny app Works!!!!!
+
+shiny using ggplot
 ```{r message=FALSE, warning=FALSE}
 library(shiny)
 library(datasets)
@@ -189,8 +167,110 @@ server <- function(input, output){
 shinyApp(ui = ui, server = server)
 ```
 
-shiny app and d3 mixed
-```{r}
+
+
+shiny using d3
+```{r warning=FALSE,message=FALSE}
+library(shiny)
+library(datasets)
+library(tidyr)
+
+ui <- fluidPage(
+  titlePanel(tags$strong("Top 20 Words")),
+  
+  verticalLayout(
+    tags$h3("Fake News Words"),
+    d3Output("fake"),
+    tags$h3("True News Words"),
+    d3Output("real")
+  )
+  
+)
+
+server <- function(input, output){
+  output$fake <- renderD3(r2d3::r2d3(data=top_fake_df_words, script = "r2d3/d3_scripts.js", d3_version = "3", container = "div"))
+  output$real <- renderD3(r2d3::r2d3(data=top_true_df_words, script = "r2d3/d3_scripts.js", d3_version = "3", container = "div"))
+
+}
+
+
+shinyApp(ui,server)
+```
+
+
+visuals for a sentiment analysis
+
+```{r warning=FALSE,message=FALSE}
+library(reshape2)
+
+head(fake_df)
+head(true_df) 
+
+fake_df <- mutate(fake_df, text = as.character(fake_df$text))
+
+full_df <- mutate(full_df, text = as.character(full_df$text))
+
+true_df_words <- true_df %>%
+  unnest_tokens(word,text) %>%
+  anti_join(get_stopwords())
+
+fake_df_words <- fake_df %>%
+  unnest_tokens(word,text) %>%
+  anti_join(get_stopwords())
+
+# top 50 words in word cloud
+fake_df_words %>%
+  #select(word, type) %>%
+  inner_join(get_sentiments("bing")) %>%
+  count(word, sentiment, sort = TRUE) %>%
+  acast(word ~ sentiment, value.var = "n", fill = 0) %>%
+  comparison.cloud(colors = c("gray10", "gray50"),
+                   max.words = 300)
+
+
+# top 50 words in word cloud
+true_df_words %>%
+  #select(word, type) %>%
+  inner_join(get_sentiments("bing")) %>%
+  count(word, sentiment, sort = TRUE) %>%
+  acast(word ~ sentiment, value.var = "n", fill = 0) %>%
+  comparison.cloud(colors = c("gray10", "gray50"),
+                   max.words = 300)
+
+
+fake_df_words_top <- fake_df_words %>%
+  inner_join(get_sentiments("bing")) %>%
+  count(word, sentiment) %>%
+  top_n(10,n) %>%
+  arrange(desc(n))
+
+# table of top 20 words
+knitr::kable(fake_df_words_top)
+
+true_df_words_top <- true_df_words %>%
+  inner_join(get_sentiments("bing")) %>%
+  count(word, sentiment) %>%
+  top_n(10, n) %>%
+  arrange(desc(n))
+
+# table of top 20 words
+knitr::kable(true_df_words_top)
+```
+
+
+
+
+
+
+
+
+
+
+
+## to archive
+
+shiny app and d3 mixed - overlaps
+```{r warning=FALSE,message=FALSE}
 library(shiny)
 library(datasets)
 library(tidyr)
@@ -221,7 +301,7 @@ server <- function(input, output){
       r2d3::r2d3(data=top_true_df_words, script = "r2d3/d3_scripts.js", d3_version = "3", container = "div")
     }
   })
-  output$d3.exit().remove()
+  #output$d3.exit().remove()
 
 }
 
@@ -229,42 +309,28 @@ server <- function(input, output){
 shinyApp(ui,server)
 ```
 
-shiny test 2
-```{r}
-library(shiny)
-library(datasets)
-library(tidyr)
 
-ui <- fluidPage(
-  titlePanel("Top 20 Words"),
-  
-  sidebarLayout(
-    sidebarPanel(
-      selectInput("type", "Type of Article:",
-                  choices = top_words_all$type),
-                 # selected = c(top_words_all$type == "Fake")),
-      hr(),
-      helpText("Select a type from the dropdown to display data")
-    ),
-    
-    d3Output("d3")
-  )
-)
-
-server <- function(input, output){
-  output$d3 <- renderD3({
-    #render d3 graph
-    if(input$type == "Fake"){
-      r2d3::r2d3(data=top_fake_df_words, script = "r2d3/d3_scripts_multi_test.js", d3_version = "3", container = "div")
-    }
-    else{
-      r2d3::r2d3(data=top_true_df_words, script = "r2d3/d3_scripts_multi_test.js", d3_version = "3", container = "div")
-    }
-  })
-
-}
-
-
-shinyApp(ui,server)
+create dataset 
+```{r warning=FALSE,message=FALSE}
+dataset_test <- readr::read_tsv("r2d3/data_testing.tsv")
 ```
 
+```{r warning=FALSE,message=FALSE}
+r2d3::r2d3(data=dataset_test, script = "r2d3/d3_scripts_copy.js", d3_version = "3", container = "div")
+?r2d3
+
+all_50 <- rbind(fake_df_words, true_df_words)
+
+all_50 %>%
+  #select(word, type) %>%
+  inner_join(get_sentiments("bing")) %>%
+  count(word, sentiment, sort = TRUE) %>%
+  acast(word ~ sentiment, value.var = "n", fill = 0) %>%
+  comparison.cloud(colors = c("tomato3", "steelblue1"),
+                   max.words = 300)
+
+layout(matrix(c(1,1,2,3), 2, 2, byrow = TRUE)) 
+fake_wc
+true_wc
+all_wc
+```

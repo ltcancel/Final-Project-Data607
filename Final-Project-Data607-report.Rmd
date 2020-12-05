@@ -32,8 +32,8 @@ library(randomForest)
 library(ggplot2)     # to plot
 library(gridExtra)   # to put more
 library(grid)        # plot together
-source(here("functions","draw_confusion_matrix.R"), local = knitr::knit_global())
-
+#source(here("functions","draw_confusion_matrix.R"), local = knitr::knit_global())
+source(here("model_scripts","r2d3","top_words_barcharts.R", local = knitr::knit_global()))
 ```
 
 # Acquiring the Data
@@ -41,25 +41,72 @@ source(here("functions","draw_confusion_matrix.R"), local = knitr::knit_global()
 We extracted the tar files into our project's data folder, we then read all of the files into two corpora, ensured to properly tag them with the corresponding type and saved the results in the project's data csv folder. 
 
 ```{r}
-
-ham_directory<-DirSource(here("data","spamham","easy_ham"))
-spam_directory<-DirSource(here("data","spamham","spam_2"))
-
-ham_corpus<-Corpus(ham_directory, readerControl = list(reader=readPlain))
-spam_corpus<-Corpus(spam_directory,readerControl = list(reader=readPlain))
-
-#combine into one big corpus (now with appropriate tags)
-df1 <- data.frame(text = sapply(ham_corpus, as.character), type="ham", stringsAsFactors = FALSE)
-df2 <- data.frame(text = sapply(spam_corpus, as.character), type="spam", stringsAsFactors = FALSE)
-
-main_df <- rbind(df1, df2)
-main_df<-main_df%>%
-  mutate(id=row_number(),.before=text)
-
-view(head(main_df))
-
-con<-file(here('data','csv','full_df.csv'),encoding="UTF-8")
-write.csv(main_df,file=con , row.names = FALSE, )
+format_dtm<-function(input_df,reference_df){
+  
+  #get column names as lists for each DF
+  input_cols<-colnames(input_df)
+  reference_cols<-colnames(reference_df)
+  
+  #remove "DocType" column if it exists in the reference df
+  if("DocType"%in%colnames(reference_cols)==TRUE){
+    reference_df<-reference_df%>%
+      select(-DocType)
+  }
+  
+  #remove unwanted columns
+  i=1
+  cols_removed<-0
+  vars_to_remove<-vector()
+  while(i<ncol(input_df)){
+    pattern<-paste0("^",input_cols[i],"$")
+    if(all(str_detect(colnames(reference_df),pattern,negate=TRUE))){
+      vars_to_remove<-append(vars_to_remove,as.numeric(i))
+      cols_removed<-cols_removed+1
+    }
+    i=i+1
+  }
+  
+  input_df<-input_df%>%
+    select(-vars_to_remove)
+  
+  output_df<-input_df
+  
+  #add necessary columns with values set to zero
+  j=1
+  cols_added<-0
+  #priming temp_df
+  xxx<-rep(0, nrow(input_df))
+  temp_df<-data.frame(xxx)
+  while(j<ncol(reference_df)){
+    pattern<-paste0("^",reference_cols[j],"$")
+    if(!any(str_detect(colnames(input_df),pattern))){
+      
+      #create a temporary column
+      temp_col<-rep(0, nrow(input_df))
+      #add it to the input_df
+      temp_df$temp_col<-temp_col
+      
+      #rename temp_col with correct word
+      #coerce column name to a name, not sure if i need this
+      temp_df<-temp_df%>%
+        rename(
+          !!reference_cols[j] :=temp_col
+        )
+      cols_added<-cols_added+1
+    }
+    j=j+1
+  }
+  temp_df<-temp_df%>%
+    select(-xxx)
+  output_df<-input_df
+  output_df<-cbind(output_df,temp_df)
+  
+  #alphabetize output_df
+  #output_df<-input_df[,order(colnames(input_df))]
+  #print number of columns added and removed
+  cat("number of columns removed:",cols_removed,"\n","number of columns added:",cols_added)
+  return(output_df)
+}
 
 ```
 
@@ -237,3 +284,10 @@ svm_c_matrix
 
 ```{r, echo=FALSE}
 draw_confusion_matrix(svm_c_matrix)
+```
+
+# D3 Visualization 
+```{r}
+draw_top_words_chart()
+```
+

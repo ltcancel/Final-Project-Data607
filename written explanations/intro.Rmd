@@ -22,7 +22,7 @@ academic definition:
 
 cultural definition:
 
-In its current form, it often used to identify political bias of the news source.  This problem is excastribated by news sources either implicitly or explicitly denying any bias, while butting up against the reality that even if what they report objectively happened and is verifiable, what they choose and choose not to report is a form of bias in itself. 
+In its current form, it often used to identify political bias of the news source.  This problem is exastribated by news sources either implicitly or explicitly denying any bias, while butting up against the reality that even if what they report objectively happened and is verifiable, what they choose and choose not to report is a form of bias in itself. 
 
 
 in summation:
@@ -30,5 +30,5 @@ in summation:
 "Not only do different people have opposing views about the meaning of “fake news”, in practice the term undermines the intellectual values of democracy – and there is a real possibility that it means nothing. We would be better off if we stopped using it."-Chris Ratcliffe
 
 
-In light of this, we have chosen the adacemic approach, and will try to build an algorithm that can identify news with verifiable fact versus misinformation. 
+In light of this, we have chosen the academic approach, and will try to build an algorithm that can identify news with verifiable fact versus misinformation. 
 

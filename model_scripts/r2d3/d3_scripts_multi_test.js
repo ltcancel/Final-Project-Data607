@@ -13,8 +13,8 @@ var margin = {top: 30, right: 30, bottom: 70, left: 60},
     height = 400 - margin.top - margin.bottom;
 
 // append the svg object to the body of the page
-var svg = //d3.select("#my_dataviz")
-  div.append("svg")
+var svg = d3.select("#my_dataviz")
+  .append("svg")
     .attr("width", width + margin.left + margin.right)
     .attr("height", height + margin.top + margin.bottom)
   .append("g")
@@ -22,23 +22,17 @@ var svg = //d3.select("#my_dataviz")
           "translate(" + margin.left + "," + margin.top + ")");
 
 // Initialize the X axis
-//var x = d3.scaleBand()
-  //.range([ 0, width ])
-  //.padding(0.2);
-var x = d3.scale.ordinal()
-    .rangeRoundBands([0, width], .2);
-
+var x = d3.scaleBand()
+  .range([ 0, width ])
+  .padding(0.2);
 var xAxis = svg.append("g")
-  .attr("transform", "translate(0," + height + ")");
+  .attr("transform", "translate(0," + height + ")")
 
 // Initialize the Y axis
-//var y = d3.scaleLinear()
-  //.range([ height, 0]);
-var y = d3.scale.linear()
-    .range([height, 0]);
-    
+var y = d3.scaleLinear()
+  .range([ height, 0]);
 var yAxis = svg.append("g")
-  .attr("class", "myYaxis");
+  .attr("class", "myYaxis")
 
 
 // A function that create / update the plot for a given variable:
@@ -46,20 +40,11 @@ function update(data) {
 
   // Update the X axis
   x.domain(data.map(function(d) { return d.group; }))
-  //xAxis.call(d3.axisBottom(x))
-  var xAxis = d3.svg.axis()
-    .scale(x)
-    .orient("bottom");
+  xAxis.call(d3.axisBottom(x))
 
   // Update the Y axis
-  var yAxis = d3.svg.axis()
-    .scale(y)
-    .orient("left")
-
   y.domain([0, d3.max(data, function(d) { return d.value }) ]);
-  //yAxis.transition().duration(1000).call(d3.axisLeft(y));
-
-
+  yAxis.transition().duration(1000).call(d3.axisLeft(y));
 
   // Create the u variable
   var u = svg.selectAll("rect")
@@ -84,4 +69,4 @@ function update(data) {
 }
 
 // Initialize the plot with the first dataset
-update(data) //update(data1)
+r2d3.onRender(Update(data))//update(data1)

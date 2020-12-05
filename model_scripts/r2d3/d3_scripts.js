@@ -356,13 +356,13 @@ r2d3.onRender(function(data, s, w, h, options) {
       .on('mouseout', tip.hide);
   
   //add chart title
-  svg.append("text")
-    .attr("transform","translate(100,0)")
-    .attr("x", 100)
-    .attr("y", 50)
-    .attr("font-size","30px")
-    .attr("font-weight","bold")
-    .text("Top 20 Words");
+ // svg.append("text")
+   // .attr("transform","translate(100,0)")
+  //  .attr("x", 100)
+  //  .attr("y", 50)
+  //  .attr("font-size","30px")
+  //  .attr("font-weight","bold")
+  //  .text("Top 20 Words");
 
 });
 

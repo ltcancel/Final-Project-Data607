@@ -2,40 +2,206 @@
 title: "Final Presentation outline"
 author: "Jack Wright"
 date: "12/4/2020"
-output: html_document
+output: 
+  rmdformats::material:
+  code_folding: hide
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Intro
+# Fake News!
+<insert image of quote>
+![](fake_news_has_become_2.png)
 
-<explain the real/fake news paradox, identify problems with the framing>
-<state our approach>
+Our project started with the seemingly innocuous proposal of creating an algorithm to identify real vs fake news, a classification that has had a lot of cache over the last half decade.
 
-## Data
+**Academic definition:**
+
+"...“fake news” (are) news stories that are false: the story itself is fabricated, with no verifiable facts, sources or quotes." -University of Michigan Libraries.
+
+**Cultural definition:**
+
+In its current form, it is often used to identify political bias of the news source.  This problem is exacerbated by news sources either implicitly or explicitly denying any bias, while butting up against the reality that even if what they report objectively happened and is verifiable, what they choose and choose not to report is a form of bias in itself. 
+
+**In summation:**
+
+"Not only do different people have opposing views about the meaning of “fake news”, in practice the term undermines the intellectual values of democracy – and there is a real possibility that it means nothing. We would be better off if we stopped using it."-Chris Ratcliffe
+
+
+In light of this, we have chosen the academic approach, and will try to build an algorithm that can identify news with verifiable fact versus misinformation.
+
+
+# Data
+
+We located a source from INCLUDE_SOURCE where the authors have composed a dataset of news articles that have been identified as misinformation through fact check research, and a set of articles that have been verified as truthful.
+
+[The Onion]((https://www.theonion.com/):
+
+We identified the satire website "the Onion" as a good source of misinformation, because it publishes comedy in the form of news satire. 
+
+["all the news" dataset](https://www.kaggle.com/snapcrack/all-the-news?select=articles1.csv):
+
+We found a dataset on Kaggle that has 150,000 news articles from six major online publishers scraped from 2015 to 2017. 
+```{r}
+# use https://nycfuture.org/pdf/Creative_Infographic-final.pdf as reference 
+# total number of datasets
+# add sentiment analysis - true and fake tables and wordclouds
+# use shiny to display tables side by side and wordclouds side by side
+
+```
+
 <identify where our data comes from>
 <show a snip of the data>
 
-## Tidying
-<example of how data is turned into a corpus>
+# Tidying
 
-<example of how we can reorganize two corpus into same structure for entry into randomForest>
 
-## Training a model
+We created several document term matrices (dtm) based on the different data sources we used to collect news articles. We then performed tidying to ensure that these dtms fit the format of the models.
 
-<show example of how we train>
-<example of a confusion matrix>
+**Notable functions:**
 
-## Analysis
+**?format_dtm()** 
+
+Format a document term matrix into the structure of another document term matrix 
+
+**Description** 
+
+Removes columns from `input_df` not used in `reference_df`, then adds columns NOT in `input_df` that are present in `reference_df` and sets values to zero.
+
+**Arguments**
+
+`input_df`: the dtm to be modified 
+
+`reference_df`: dtm
+
+***
+
+**?create_dtm_for_model()**
+
+Takes a source news data frame, creates a corpus and prepares it to be used with a trained model. 
+
+**Arguments**
+
+'source_csv': source news data frame consisting of 'doc_id' and 'text'. 
+
+'comparison_dtm': csv file with the dtm used for model training 
+
+'output_file': resulting csv with a dtm that can be used to test with the model.
+
+
+# Training a model
+
+We used the randomForest() algorithm for classifying our data as real or fake news using a 70%/30% train/test segmentation.
+
+We built one model off of the real/fake dataset from University of Victoria and a second with our "Onion" scrape as the 
+misinformation classification and the UV "real" data.
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+library(here)
+library(tidyverse)
+library(randomForest)
+source(here("functions","draw_confusion_matrix.R"), local = knitr::knit_global())
+
+# add confusion matrix as visual
+df <- read_csv(here('data','csv','output_df.csv'))
+
+#rename type column, get rid of doc it
+df<-df%>%
+  select(-docId)
+
+df$DocType <- as.factor(df$DocType)
+
+colnames(df) <- paste(colnames(df), 'c', sep="_")
+
+#already randomly assigned true or fake to divide into train and test
+#70% train
+num_rows <- nrow(df)
+first_rows <- round(num_rows*.70)
+next_rows <- first_rows + 1
+
+train<-df[1:first_rows,]
+#30% test
+test<-df[next_rows:num_rows,]
+
+num_cols <- ncol(df)
+#initialize randomForest class
+
+model <- randomForest(DocType_c~.,data=train,mtry=2,importance
+                    =TRUE,proximity=TRUE)
+
+pred <- predict(model, newdata=test[-num_cols],type="class")
+
+cm <- table(unlist(test[,num_cols]), unlist(pred))
+
+c_matrix <- caret::confusionMatrix(unlist(pred), unlist(test[,num_cols]))
+draw_confusion_matrix(c_matrix)
+```
+
+Confusion Matrix using The Onion dtm
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+# the onion data
+df <- read_csv(here('data','csv','onion_dtm_df.csv'))
+
+#rename type column, get rid of doc it
+df<-df%>%
+  select(-docId)
+
+df$DocType <- as.factor(df$DocType)
+
+colnames(df) <- paste(colnames(df), 'c', sep="_")
+
+#already randomly assigned true or fake to divide into train and test
+#70% train
+num_rows <- nrow(df)
+first_rows <- round(num_rows*.70)
+next_rows <- first_rows + 1
+
+train<-df[1:first_rows,]
+#30% test
+test<-df[next_rows:num_rows,]
+
+num_cols <- ncol(df)
+#initialize randomForest class
+
+model <- randomForest(DocType_c~.,data=train,mtry=2,importance
+                    =TRUE,proximity=TRUE)
+
+pred <- predict(model, newdata=test[-num_cols],type="class")
+
+cm <- table(unlist(test[,num_cols]), unlist(pred))
+
+c_matrix <- caret::confusionMatrix(unlist(pred), unlist(test[,num_cols]))
+draw_confusion_matrix(c_matrix)
+
+```
+
+
+# Analysis
+
+**?perform_random_forest()**
+
+Trains a random forest model based on a document term matrix and applies that trained model to a second document term matrix to classify the data as Information ("True") or Misinformation ("Fake").
+
+**Arguments**
+
+'base_dtm': previously classified csv.
+
+'target_dtm': unclassified document term matrix on which to perform document analysis. 
+
+
+**Output**
+
+Function returns prediction dataframe. 
+
 
 <identify main tracts of analysis>
   -fakeReal and onionReal on data excluded from training
   -models on eachothers data, helps us gauge accuracy on labeled data (maybe find another source of fake/true)
 <analysis of biggest variables in each category, wordcloud?>
 
-## Exploratory usage of our models
+# Exploratory usage of our models
 
 <identify how out of line realFake is with our preconceptions>
 <identify how onionReal does on all_the_news>
@@ -44,3 +210,5 @@ knitr::opts_chunk$set(echo = TRUE)
 <centerfold highlight mega graph of all_the_news plots in order>
 
 
+# sources
+https://towardsdatascience.com/random-forest-in-r-f66adf80ec9

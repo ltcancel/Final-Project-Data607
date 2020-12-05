@@ -1,10 +1,6 @@
 #try predicting real and fake news on target_dtm
 
 #run random forest 
-# random forest test
-
-#looking at this website
-# https://towardsdatascience.com/random-forest-in-r-f66adf80ec9
 
 library(randomForest)
 library(tidyverse)
@@ -22,7 +18,7 @@ perform_random_forest <- function( base_dtm,
   colnames(df) <- paste(colnames(df), 'c', sep="_")
   
   #already randomly assigned spam or ham so I can just divide into train and test
-  #70% trai
+  #70% train
   num_rows <- nrow(df)
   first_rows <- round(num_rows*.70)
   next_rows <- first_rows + 1
@@ -33,9 +29,6 @@ perform_random_forest <- function( base_dtm,
   
   num_cols <- ncol(df)
   #initialize randomForest class
-  
-  #randomForest() function not running. I think it might be something to do with non ASCII
-  #characters in the column names??
   
   model <- randomForest(DocType_c~.,data=train,importance
                         =TRUE,proximity=TRUE)
