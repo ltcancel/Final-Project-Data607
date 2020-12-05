@@ -1,0 +1,67 @@
+---
+title: "source-data-at-glance"
+author: "George Cruz"
+date: "12/5/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+library(ggplot2)
+library(emojifont)
+df <- data.frame(
+    x = rep(seq(2, 15, 6.5), 2),
+    y = c(rep(6.5, 3), rep(2,3)),
+    h = rep(4.25, 6),
+    w = rep(6.25, 6),
+    value = c("150K",
+             "5",
+             "> 44K",
+             "260+",
+             "2",
+             "+21"),
+    info = c("News articles from Kaggle",
+             "News outlets tested",
+             "Classified news ISOT data",
+             "Articles from the Onion",
+             "True/Fake trained models",
+             "Functions written"),
+    shape = c(fontawesome(search_fontawesome("chart")),
+              emoji("athletic_shoe")),
+    font_family = c(rep("fontawesome-webfont", 5),
+                    "EmojiOne"),
+    color = factor(1:6)
+)
+
+ggplot(df, aes(x, y, height = h, width = w, label = info)) +
+    geom_tile(aes(fill = color)) +
+    geom_text(color = "white", fontface = "bold", size = 10,
+              aes(label = value, x = x - 2.9, y = y + 1), hjust = 0) +
+    geom_text(color = "white", fontface = "bold",
+              aes(label = info, x = x - 2.9, y = y - 1), hjust = 0) +
+    coord_fixed() +
+    scale_fill_brewer(type = "qual",palette = "Dark2") +
+    geom_text(size = 20, aes(label = shape, family = font_family,
+                             x = x + 1.5, y = y + 0.5), alpha = 0.25) +
+    theme_void() +
+    guides(fill = FALSE)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
