@@ -13,12 +13,44 @@ library(here)
 source(here("functions", "perform_random_forest.R"))
 source(here("functions", "create_dtm_for_model.R"))
 
-create_dtm_for_model(here('data','csv','breitbart.csv'), 
-                     here('data','csv','output_df.csv'), 
-                     here('data','csv','breitbart_dtm.csv'))
+create_dtm_for_model(here('data','csv','new_york_times.csv'), 
+                     here('data','csv','onion_dtm_df.csv'), 
+                     here('data','csv','nytimes_onion_dtm.csv'))
 
 bi_on <- perform_random_forest(here('data','csv','onion_dtm_df.csv'), 
                            here('data', 'csv','business_insider_onion_dtm.csv'))
+
+cnn_on <- perform_random_forest(here('data','csv','onion_dtm_df.csv'), 
+                               here('data', 'csv','cnn_onion_dtm.csv'))
+nytimes_on <- perform_random_forest(here('data','csv','onion_dtm_df.csv'), 
+                               here('data', 'csv','nytimes_onion_dtm.csv'))
+bbt_on <- perform_random_forest(here('data','csv','onion_dtm_df.csv'), 
+                               here('data', 'csv','breitbart_onion_dtm.csv'))
+atl_on <- perform_random_forest(here('data','csv','onion_dtm_df.csv'), 
+                               here('data', 'csv','atlantic_onion_dtm.csv'))
+#combine all 5 random forest
+bi_on <- bi_on %>%
+  mutate(publication = "business_insider")
+cnn_on <- cnn_on %>%
+  mutate(publication = "cnn")
+nytimes_on <- nytimes_on %>%
+  mutate(publication = "nytimes")
+bbt_on <- bbt_on %>%
+  mutate(publication = "breitbart")
+atl_on <- atl_on %>%
+  mutate(publication = "atlantic")
+
+final <- rbind(bi_on,cnn_on,nytimes_on,bbt_on,atl_on)
+
+final$pred <- as.factor(final$pred)
+
+final <- final %>%
+  mutate(pred= ifelse(pred == "Onion", "Fake", "True")) %>%
+  mutate(pred_pct= ifelse(pred == "Fake", 0, 1))
+  
+
+#final_temp <- final %>%
+#  mutate(publication = fct_reorder(publication, desc(mean(pred_pct))))
 
 bi_ft <- perform_random_forest(here('data','csv','output_df.csv'), 
                            here('data', 'csv','business_insider_dtm.csv'))
@@ -31,11 +63,15 @@ bi_on <- bi_on %>%
 
 bi_ft <- bi_ft %>%
   mutate(model="fake_true")
+
 bi <- rbind(bi_on, bi_ft)
 
 ggplot(bi, aes(x=factor(model), fill=factor(pred) )) +
-  geom_bar(position="stack" )
+  geom_bar(position="stack")
 
+ggplot(final, aes(x=factor(publication), fill=factor(pred) )) +
+  geom_bar(position="fill") +
+  labs(title = "Classification of All Publications")
 
 
 cnn_on <- perform_random_forest(here('data','csv','onion_dtm_df.csv'), 

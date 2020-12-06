@@ -15,8 +15,8 @@ create_dtm_for_model <- function( source_csv,
   #data frame to corpus
   source_df <-read.csv(source_csv, encoding="ascii")
   
-  Encoding(source_df$text) <- "latin1"
-  source_df$text<-iconv(source_df$text, "latin1", "ASCII", sub="")
+  #Encoding(source_df$text) <- "latin1"
+  #source_df$text<-iconv(source_df$text, "latin1", "ASCII", sub="")
   
   sample_df<-source_df
   

@@ -1,7 +1,8 @@
-draw_confusion_matrix <- function(cm) {
+draw_confusion_matrix <- function(cm,ctitle) {
   
   total <- sum(cm$table)
   res <- as.numeric(cm$table)
+  
   
   # Generate color gradients. Palettes come from RColorBrewer.
   greenPalette <- c("#F7FCF5","#E5F5E0","#C7E9C0","#A1D99B","#74C476","#41AB5D","#238B45","#006D2C","#00441B")
@@ -19,7 +20,7 @@ draw_confusion_matrix <- function(cm) {
   layout(matrix(c(1,1,2)))
   par(mar=c(2,2,2,2))
   plot(c(100, 345), c(300, 450), type = "n", xlab="", ylab="", xaxt='n', yaxt='n')
-  title('CONFUSION MATRIX', cex.main=2)
+  title(ctitle, cex.main=2)
   
   # create the matrix 
   classes = colnames(cm$table)
@@ -58,4 +59,5 @@ draw_confusion_matrix <- function(cm) {
   text(30, 20, round(as.numeric(cm$overall[1]), 3), cex=1.4)
   text(70, 35, names(cm$overall[2]), cex=1.5, font=2)
   text(70, 20, round(as.numeric(cm$overall[2]), 3), cex=1.4)
+  
 }
